@@ -1,0 +1,388 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "704fcf4b-3461-41b8-8af3-42b3e850598e",
+              "leftValue": "={{$node[\"Product Info\"].json[\"Available\"]}}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "91840cc1-8898-417d-ac98-88558cf2a259",
+              "leftValue": "={{$node[\"Product Info\"].json[\"Available\"]}}",
+              "rightValue": "No",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        -1340
+      ],
+      "id": "46b5a36d-115f-49f2-99ad-d66afe8e3b79",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "7801684174",
+        "text": "=\nHere is the Information of the product\nProduct:  {{ $('Product Info').item.json['Product Name'] }}\nPrice: {{ $('Product Info').item.json.Price }}",
+        "additionalFields": {
+          "appendAttribution": true
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1560,
+        -1340
+      ],
+      "id": "f557e373-df11-436a-b47d-e25261608b62",
+      "name": "Telegram",
+      "webhookId": "25233028-5dce-46af-80e2-d095b3b8cffb",
+      "credentials": {
+        "telegramApi": {
+          "id": "dwqt8uXuGI5jqILj",
+          "name": "Telegram account 9"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "7801684174",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1560,
+        -960
+      ],
+      "id": "df00cc2d-52e8-4064-a858-bebb4c1891a7",
+      "name": "Telegram1",
+      "webhookId": "d0454dba-5fcb-438d-b033-c277e7a59f85",
+      "credentials": {
+        "telegramApi": {
+          "id": "dwqt8uXuGI5jqILj",
+          "name": "Telegram account 9"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $node[\"Telegram Trigger\"].json?.message?.text?.toLowerCase()?.trim() || \"\";\nconsole.log(\"🔍 User message:\", message);\n\n// Get all FAQ rows from the Product Info node\nconst faqs = $node[\"Get Products\"].json;\n\nconst faqRows = Array.isArray(faqs) ? faqs : [faqs];\n\nlet bestMatch = \"\";\nlet highestScore = 0;\n\nfor (const row of faqRows) {\n  const faqQuestion = row[\"FAQ (Question)\"]?.toLowerCase()?.trim();\n  if (!faqQuestion) continue;\n\n  const faqWords = faqQuestion.split(/\\s+/);\n  let score = 0;\n\n  for (const word of faqWords) {\n    if (message.includes(word)) score++;\n  }\n\n  if (score > highestScore) {\n    highestScore = score;\n    bestMatch = row[\"FAQ (Question)\"];\n  }\n}\n\nconsole.log(\"✅ Matched FAQ:\", bestMatch);\nreturn [{ question: bestMatch }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        -1320
+      ],
+      "id": "a004df96-f73c-4861-bfa6-cd86928d8d44",
+      "name": "Extract Product",
+      "alwaysOutputData": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10LJRhlYQyQ3uee5-LtC4ZPGEKYH4s3N_uh-Nb90-8Xo",
+          "mode": "list",
+          "cachedResultName": "test1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10LJRhlYQyQ3uee5-LtC4ZPGEKYH4s3N_uh-Nb90-8Xo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10LJRhlYQyQ3uee5-LtC4ZPGEKYH4s3N_uh-Nb90-8Xo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        80,
+        -1320
+      ],
+      "id": "a007bbeb-29cb-42f6-a8c4-6ae801998ea4",
+      "name": "Get Products",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4sR5tzJdDMBr0v4L",
+          "name": "Google Sheets account 164"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -280,
+        -1360
+      ],
+      "id": "e8322d8f-e2bb-4c20-aefc-43e705e878a6",
+      "name": "Telegram Trigger",
+      "webhookId": "e5e64acc-2eaf-46b2-8a2f-314f5b0d1d29",
+      "credentials": {
+        "telegramApi": {
+          "id": "dwqt8uXuGI5jqILj",
+          "name": "Telegram account 9"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10LJRhlYQyQ3uee5-LtC4ZPGEKYH4s3N_uh-Nb90-8Xo",
+          "mode": "list",
+          "cachedResultName": "test1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10LJRhlYQyQ3uee5-LtC4ZPGEKYH4s3N_uh-Nb90-8Xo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10LJRhlYQyQ3uee5-LtC4ZPGEKYH4s3N_uh-Nb90-8Xo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        680,
+        -1320
+      ],
+      "id": "144c2979-458a-4d55-9b1a-db4046ff948a",
+      "name": "Product Info",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "4sR5tzJdDMBr0v4L",
+          "name": "Google Sheets account 164"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "say sorry properly add product is not available and reply about product",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1160,
+        -1200
+      ],
+      "id": "9e0107d0-c336-4762-a298-4afee5e89016",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-8b-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        -980
+      ],
+      "id": "0b6867cb-d573-4bfc-aa69-bdd22a75cf36",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iAJ1lMUp24TvkqRG",
+          "name": "Google Gemini(PaLM) Api account 39"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-flash-8b-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1180,
+        -1380
+      ],
+      "id": "4794ebb4-99a5-4fd8-a29b-01dfab27c52e",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iAJ1lMUp24TvkqRG",
+          "name": "Google Gemini(PaLM) Api account 39"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "If the product is available generate a response according to the message and add it's proper info",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        1180,
+        -1620
+      ],
+      "id": "b423e9b0-0b22-41e5-a635-357191a039ec",
+      "name": "AI Agent1"
+    }
+  ],
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram": {
+      "main": [
+        []
+      ]
+    },
+    "Extract Product": {
+      "main": [
+        [
+          {
+            "node": "Product Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products": {
+      "main": [
+        [
+          {
+            "node": "Extract Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Info": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5d927d9375747622767f095ddf723e3b731bdcb16f3cc831c46075d0d192f10c"
+  }
+}
